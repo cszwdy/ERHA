@@ -28,19 +28,20 @@ struct Lyric {
 
 class FaceTimeViewController: UIViewController {
     
-    private var stateStore: StateStore<FaceTimeViewController.Event, FaceTimeViewController.State, FaceTimeViewController.Operation>!
+    private var stateStore: StateStore<FaceTimeViewController.Event, FaceTimeViewController.State, FaceTimeViewController.Command>!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        stateStore = StateStore<Event, State, Operation>.init(reduce: reduce)
+        stateStore = StateStore<Event, State, Command>.init(reduce: reduce)
         let state = State()
         stateStore.addObserver(initialState: state, command: nil, stateDidChanged: stateDidChanged(old:new:command:))
-        stateStore.dispatch(.searchStart)
+//        stateStore.dispatch(.searchReady)
     }
     
     // absolute value
     struct State: StateType {
+        
         // Users
         var localUser: User?
         var remoteUser: User?
@@ -48,27 +49,46 @@ class FaceTimeViewController: UIViewController {
         // Song
         var willPlaySong: Song?
         
-        // SearchView
-        var hiddenSearchView = false
-        var hiddenSearchWaittingView = false
-        var hiddenSearchRemoteUserAvatarView = true
-        var textOfSearchTitle = "Searching..."
+        struct SearchViewState: Equatable {
+            static func ==(lhs: FaceTimeViewController.State.SearchViewState, rhs: FaceTimeViewController.State.SearchViewState) -> Bool {
+                return lhs.hidden != rhs.hidden && lhs.hiddenWait != rhs.hiddenWait && lhs.hiddenAvatar != rhs.hiddenAvatar && lhs.title != rhs.title
+            }
+            
+            let hidden: Bool
+            let hiddenWait: Bool
+            let hiddenAvatar: Bool
+            let title: String
+        }
+        var searchViewState = SearchViewState(hidden: false, hiddenWait: false, hiddenAvatar: true, title: "Searching...")
         
-        // SongsView
-        var hiddenSongsView = true
-//        var dataSourceOfSongs = TableDataSourceWrapper.self
         
-        // DownloadView
-        var hiddenDownloadView = true
-        var progressOfDownload: Float = 0.0
-        var textOfDownloadTitle = ""
+        struct SongsViewState {
+            let hidden: Bool
+        }
+        var songsViewState = SongsViewState(hidden: true)
         
-        // PlayView
-        var hiddenPlayView = true
-        var progressOfPlay: Float = 0.0
-        var textOfPastTimeLabel = ""
-        var textOfRemainTimeLabel = ""
-//        var dataSourceOfLyric = TableDataSourceWrapper.self
+        
+        struct DownloadViewState {
+            let hidden: Bool
+            let progress: CGFloat
+            let title: String
+        }
+        var downloadViewState = DownloadViewState(hidden: true, progress: 0.0, title: "")
+        
+
+        struct LyricViewState {
+            let hidden: Bool
+        }
+        var lyricViewState = LyricViewState(hidden: true)
+        
+        
+        struct PlayViewState {
+            let hidden: Bool
+            let progress: CGFloat
+            let title0: String
+            let title1: String
+        }
+        var playViewState = PlayViewState(hidden: true, progress: 0.0, title0: "", title1: "")
     }
     
     
@@ -76,81 +96,78 @@ class FaceTimeViewController: UIViewController {
     enum Event: EventType {
         
         // Search
-        case searchStart  // reset UI, search command
-        case searchMatched(User)
-        case searchConnected // command, songsAppear
+//        case searchReady
+//        case searchMatched(User)
+//        case searchDisappear
+//
+//        // Songs
+//        case songsReady
+//        case songsSelected(Song)
+//        case songsNeedAgree(Song)
+//
+//        // Download
+//        case downloadStart(Song)
+//        case downloadedProgressTo(Float)
+//        case downloadFinished(Song, Lyric)
+//
+//        // Play
+//        case songPlay(Song)
+//        case songProgressTo(Float)
+//        case lyricReload(Lyric)
         
-        // Songs
-        case songsStart // command, request song
-//        case songsReload(TableDataSource<String>)
-        case songsSelectedTo(Song)
-        case songsDidAgreeTo(Song) // command, download song
-        
-        // Download
-        case downloadStart(Song)
-        case downloadedProgressTo(Float)
-        case downloadFinished(Song, Lyric)
-        
-        // Play
-        case songPlay(Song)
-        case songProgressTo(Float)
-        case lyricReload(Lyric)
+        case sync
+        case async
     }
     
-    enum Operation: OperationType {
-        case searchRequest
-        case songsRequest
-        case songsSelectedTo(Song)
-        case download(Song)
-        case songPlay(Song)
+    enum Command: OperationType {
+//        case searchRequest
+//        case songsRequest
+//        case songsSelectedTo(Song)
+//        case download(Song)
+//        case songPlay(Song)
+        
+        case sync
+        case async
     }
     
     // (action, state) -> (state, command)
-    func reduce(action: Event, old: State) -> (State, Operation?) {
+    func reduce(action: Event, old: State) -> (State, Command?) {
         var state = old
-        var operation: Operation?
+        var operation: Command?
         
         switch action {
-        case .searchStart:
-            // SearchView
-            state.hiddenSearchView = false
-            state.hiddenSearchWaittingView = false
-            state.hiddenSearchRemoteUserAvatarView = true
-            state.textOfSearchTitle = "Searching..."
-            // SongsView
-            state.hiddenSongsView = true
-            // DownloadView
-            state.hiddenDownloadView = true
-            // PlayView
-            state.hiddenPlayView = true
-            operation = .searchRequest
+//        case .searchReady:
+//            state.searchViewState = State.SearchViewState(hidden: false, hiddenWait: false, hiddenAvatar: true, title: "Searching...")
+//            state.songsViewState = State.SongsViewState(hidden: true)
+//            state.downloadViewState = State.DownloadViewState(hidden: true, progress: 0.0, title: "")
+//            state.lyricViewState = State.LyricViewState(hidden: true)
+//            state.playViewState = State.PlayViewState(hidden: true, progress: 0.0, title0: "", title1: "")
+//
+//            operation = .searchRequest
+//
+//        case .searchUpdated(let user):
+//            if old.remoteUser?.uid != user.uid {
+//                state.remoteUser = user
+//                state.searchViewState = State.SearchViewState(hidden: false, hiddenWait: true, hiddenAvatar: false, title: "\(user.nickName)")
+//                state.songsViewState = State.SongsViewState(hidden: true)
+//                state.downloadViewState = State.DownloadViewState(hidden: true, progress: 0.0, title: "")
+//                state.lyricViewState = State.LyricViewState(hidden: true)
+//                state.playViewState = State.PlayViewState(hidden: true, progress: 0.0, title0: "", title1: "")
+//            }
+//
+//        case .searchConnected:
+//            state.searchViewState = State.SearchViewState(hidden: true, hiddenWait: true, hiddenAvatar: false, title: old.searchViewState.title)
+//            state.songsViewState = State.SongsViewState(hidden: false )
+//            state.downloadViewState = State.DownloadViewState(hidden: true, progress: 0.0, title: "")
+//            state.lyricViewState = State.LyricViewState(hidden: true)
+//            state.playViewState = State.PlayViewState(hidden: true, progress: 0.0, title0: "", title1: "")
             
-        case .searchMatched(let user):
-            if old.remoteUser?.uid != user.uid {
-                state.remoteUser = user
-                state.hiddenSearchView = false
-                state.hiddenSearchWaittingView = true
-                state.hiddenSearchRemoteUserAvatarView = false
-                state.textOfSearchTitle = "\(user.nickName)"
-                // SongsView
-                state.hiddenSongsView = true
-                // DownloadView
-                state.hiddenDownloadView = true
-                // PlayView
-                state.hiddenPlayView = true
-            }
+        case .sync:
+            operation = .sync
             
-        case .searchConnected:
-            state.hiddenSearchView = true
-            // SongsView
-            state.hiddenSongsView = true
-            // DownloadView
-            state.hiddenDownloadView = true
-            // PlayView
-            state.hiddenPlayView = true
+        case .async:
+            operation = .async
             
-        default:
-            ()
         }
         
         return (state, operation)
@@ -158,10 +175,24 @@ class FaceTimeViewController: UIViewController {
     
     
     // Diff old state and new state to change UI and call method.
-    func stateDidChanged(old: State?, new: State, command: Operation?) {
-        
+    func stateDidChanged(old: State?, new: State, command: Command?) {
+        if old!.searchViewState != new.searchViewState {
+            
+        }
     }
 }
 
 
-// MARK: - Command
+// MARK: - Operations
+extension FaceTimeViewController {
+    
+    func operationSync() {
+        print("Hello World!")
+    }
+    
+    func operationAsync() {
+        
+        
+        
+    }
+}
