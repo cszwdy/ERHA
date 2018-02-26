@@ -11,33 +11,40 @@ import UIKit
 class ViewController: UIViewController {
     
     let queue0 = DispatchQueue(label:".concurrentQueue", qos: .utility, attributes: .concurrent)
-    let queue1 = DispatchQueue(label: "1")
+    let queue1 = DispatchQueue(label:".concurrentQueue1", qos: .utility, attributes: .concurrent)
     var methodSuccess: DispatchWorkItem?
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        syncData()
     }
 
     @IBAction func action_success(_ sender: Any) {
-        methodSuccess?.cancel()
-        let item = DispatchWorkItem { print("success!") }
-        methodSuccess = item
-        let timeoutItem = DispatchWorkItem { print("timetout") }
-
-        run(concurrent: {[weak self] (group) in
-            guard let sf = self else {return}
-            group.enter()
-            sf.queue1.asyncAfter(deadline: .now()+1, execute: {
-                group.leave()
-            })
-
-            print("start")
-
-            group.enter()
-            sf.queue1.asyncAfter(deadline: .now()+2, execute: {
-                group.leave()
-            })
-        }, timeout: .now() + 3, success: item, timeoutItem: timeoutItem)
+        
+        syncData()
+        
+//        return
+//
+//            (methodSuccess?.cancel())!
+//        let item = DispatchWorkItem { print("success!") }
+//        methodSuccess = item
+//        let timeoutItem = DispatchWorkItem { print("timetout") }
+//
+//        run(concurrent: {[weak self] (group) in
+//            guard let sf = self else {return}
+//            group.enter()
+//            sf.queue1.asyncAfter(deadline: .now()+1, execute: {
+//                group.leave()
+//            })
+//
+//            print("start")
+//
+//            group.enter()
+//            sf.queue1.asyncAfter(deadline: .now()+2, execute: {
+//                group.leave()
+//            })
+//        }, timeout: .now() + 3, success: item, timeoutItem: timeoutItem)
         
     }
     
@@ -96,5 +103,63 @@ class ViewController: UIViewController {
             }
         }
     }
+    
+    struct Content {
+        let name = "Eiaostein"
+    }
+    
+    
+    func syncData() {
+        
+        var contents: [Content] = []
+        
+         DispatchQueue.global(qos: .default).async {[weak self] in
+            let group = DispatchGroup()
+            group.enter()
+            self?.queue1.asyncAfter(deadline: .now()+1) {[weak self] in
+                contents += [Content()]
+                //            group.leave()
+            }
+            let i = arc4random() % 3
+            print(i)
+            let result = group.wait(timeout: .now()+TimeInterval(i))
+            print("end")
+            switch result {
+            case .success:
+                print(contents)
+            case .timedOut:
+                print(contents)
+                print("timeout")
+            }
+        }
+        
+        
+        
+//        queue0.async {[weak self] in
+//            let group = DispatchGroup()
+//            group.enter()
+//            self?.queue1.asyncAfter(deadline: .now()+1) {
+//                self?.contents += [Content()]
+//                group.leave()
+//            }
+//
+//            let result = group.wait(wallTimeout: .now()+2)
+//
+//            print("EMiaostein")
+//
+//            switch result {
+//            case .success:
+//                let item = DispatchWorkItem {
+//                    print(self?.contents)
+//                }
+//
+//                group.notify(queue: .main, work: item)
+//
+//            case .timedOut:
+//                print("timeout")
+//            }
+//        }
+    }
+    
 }
 

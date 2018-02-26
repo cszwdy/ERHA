@@ -215,6 +215,8 @@
                     <connections>
                         <outlet property="containerView1" destination="nuo-Jf-BeJ" id="eMP-4t-iPQ"/>
                         <outlet property="containerView2" destination="aLK-uD-6Lc" id="XLq-Bt-Vaf"/>
+                        <outlet property="videoView0" destination="aLK-uD-6Lc" id="xdh-At-2gK"/>
+                        <outlet property="videoView1" destination="nuo-Jf-BeJ" id="rvB-Kd-0Yt"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="fRo-Bj-QIJ" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -253,7 +255,7 @@
                     </view>
                     <connections>
                         <outlet property="lyricContainerView" destination="tRU-Hx-jwt" id="Nt9-zk-IND"/>
-                        <outlet property="progressView" destination="tEs-W7-JjO" id="ezn-pG-dFU"/>
+                        <outlet property="progressView" destination="tEs-W7-JjO" id="7l1-Ne-2fG"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="XeK-j2-0iU" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -263,7 +265,7 @@
         <!--download-->
         <scene sceneID="uMU-Fe-zpK">
             <objects>
-                <viewController title="download" id="rVa-sA-lAi" customClass="ProgressViewController" customModule="ERHA" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController title="download" id="rVa-sA-lAi" customClass="DownloadProgressViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="dMG-n3-3Lp">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -285,8 +287,8 @@
                         <viewLayoutGuide key="safeArea" id="OgG-na-cWp"/>
                     </view>
                     <connections>
-                        <outlet property="progressView" destination="jtR-AO-yWJ" id="1ni-2T-p5F"/>
-                        <outlet property="titleLabel" destination="6Yy-iy-avb" id="9RR-BI-pAo"/>
+                        <outlet property="progressView" destination="jtR-AO-yWJ" id="7Su-sE-rBj"/>
+                        <outlet property="titleLabel" destination="6Yy-iy-avb" id="6AN-zX-6Tf"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="XxJ-bK-AGf" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -356,6 +358,7 @@
                     </view>
                     <connections>
                         <outlet property="songsTableView" destination="eeG-KA-tQ2" id="zPt-R1-xUF"/>
+                        <outlet property="songsView" destination="eeG-KA-tQ2" id="2DT-jt-6F0"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="IaI-5b-CWD" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -416,8 +419,9 @@
                     </view>
                     <connections>
                         <outlet property="avatarImgView" destination="LPL-Uv-NSe" id="gcR-Gj-7aQ"/>
-                        <outlet property="subtitleLabel" destination="n2d-uR-rIG" id="uv8-aB-PDU"/>
-                        <outlet property="titleLabel" destination="3in-xe-RH7" id="49u-QV-YFz"/>
+                        <outlet property="avatarView" destination="LPL-Uv-NSe" id="men-6P-xkr"/>
+                        <outlet property="subtitleLabel" destination="n2d-uR-rIG" id="Mvi-Ei-hju"/>
+                        <outlet property="titleLabel" destination="3in-xe-RH7" id="GUh-ab-tFM"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="EsM-1Z-kRP" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -467,10 +471,13 @@
                     </view>
                     <connections>
                         <outlet property="avatarImgView" destination="QS0-ex-sth" id="Uc1-2y-tph"/>
+                        <outlet property="avatarView" destination="QS0-ex-sth" id="Wcs-B8-0F5"/>
+                        <outlet property="backgroundView" destination="753-dD-Hqc" id="sVa-Eg-cgl"/>
                         <outlet property="bgView" destination="753-dD-Hqc" id="56E-3C-Lip"/>
-                        <outlet property="containerView" destination="WqS-5O-ULo" id="FZj-vM-0V1"/>
-                        <outlet property="titleLabel" destination="8ll-hp-oss" id="6Yd-Au-8TK"/>
+                        <outlet property="containerView" destination="WqS-5O-ULo" id="IAA-5Q-f92"/>
+                        <outlet property="titleLabel" destination="8ll-hp-oss" id="flh-rm-Gng"/>
                         <outlet property="waitImgView" destination="1qV-Qq-0TG" id="hcD-CN-pQp"/>
+                        <outlet property="waitView" destination="1qV-Qq-0TG" id="srg-md-TbY"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="1mo-0c-FqL" userLabel="First Responder" sceneMemberID="firstResponder"/>
