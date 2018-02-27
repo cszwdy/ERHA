@@ -17,7 +17,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        syncData()
+//        syncData()
     }
 
     @IBAction func action_success(_ sender: Any) {
@@ -48,40 +48,47 @@ class ViewController: UIViewController {
         
     }
     
-    @IBAction func action_done(_ sender: Any) {
-        guard let  success = methodSuccess, success.isCancelled == false else {
-            methodSuccess = nil
-            return
-        }
-        success.perform()
-        success.cancel()
+    @IBAction func action_notification(_ sender: Any) {
+//        guard let  success = methodSuccess, success.isCancelled == false else {
+//            methodSuccess = nil
+//            return
+//        }
+//        success.perform()
+//        success.cancel()
+        
+        
+        notification()
     }
     
     @IBAction func action_timeout(_ sender: Any) {
         
-        methodSuccess?.cancel()
+        count += 1
+        let uid = count
+        interrupt(uid: uid)
         
-        let item = DispatchWorkItem {
-            print("success!")
-        }
-        
-        methodSuccess = item
-        
-        let timeoutItem = DispatchWorkItem {
-            print("timetout")
-        }
-        
-        run(concurrent: {[weak self] (group) in
-            guard let sf = self else {return}
-            group.enter()
-            sf.queue1.asyncAfter(deadline: .now()+1, execute: { group.leave() })
-            print("start")
-            group.enter()
-            sf.queue1.asyncAfter(deadline: .now()+2, execute: { group.leave() })
-            },
-            timeout: .now() + 1.5,
-            success: item,
-            timeoutItem: timeoutItem)
+//        methodSuccess?.cancel()
+//
+//        let item = DispatchWorkItem {
+//            print("success!")
+//        }
+//
+//        methodSuccess = item
+//
+//        let timeoutItem = DispatchWorkItem {
+//            print("timetout")
+//        }
+//
+//        run(concurrent: {[weak self] (group) in
+//            guard let sf = self else {return}
+//            group.enter()
+//            sf.queue1.asyncAfter(deadline: .now()+1, execute: { group.leave() })
+//            print("start")
+//            group.enter()
+//            sf.queue1.asyncAfter(deadline: .now()+2, execute: { group.leave() })
+//            },
+//            timeout: .now() + 1.5,
+//            success: item,
+//            timeoutItem: timeoutItem)
     }
     
     
@@ -160,6 +167,54 @@ class ViewController: UIViewController {
 //            }
 //        }
     }
+
     
+    let name = NSNotification.Name(rawValue: "Good")
+    
+    var count = 0
+    
+    func interrupt(uid: Int) {
+        
+        queue0.async {[weak self] in
+            let group = DispatchGroup()
+            
+//            group.enter()
+//            self?.queue1.asyncAfter(deadline: .now()+1) {
+//                print("task1 done.")
+//                group.leave()
+//            }
+//
+//            let waitTask1 = group.wait(timeout: .now()+2)
+//
+//            if waitTask1 == .timedOut {
+//                return
+//            }
+            
+            print("start notification.")
+            
+            group.enter()
+            var observer: NSObjectProtocol?
+            observer = NotificationCenter.default.addObserver(forName: self!.name, object: uid, queue: .main) { (notification) in
+                print(notification)
+                NotificationCenter.default.removeObserver(observer as Any)
+                group.leave()
+            }
+            
+            let waitNoti = group.wait(timeout: .now()+4)
+            
+            if waitNoti == .timedOut {
+                print("timeout")
+                NotificationCenter.default.removeObserver(observer as Any)
+                return
+            }
+            
+            print("Done.")
+        }
+    }
+    
+    func notification() {
+        let identifier = count
+        NotificationCenter.default.post(name: name, object: identifier)
+    }
 }
 
