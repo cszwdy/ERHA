@@ -13,11 +13,30 @@ class ViewController: UIViewController {
     let queue0 = DispatchQueue(label:".concurrentQueue", qos: .utility, attributes: .concurrent)
     let queue1 = DispatchQueue(label:".concurrentQueue1", qos: .utility, attributes: .concurrent)
     var methodSuccess: DispatchWorkItem?
+    
+    let model = FaceTimeModel(token: "eac17123356d9fd3b477b61ea57ac6e4da1e128bfe5ba23b6a01db11c7e3b859@6a0897ab631f8478fc3efdd4c9cd6961", rid: "1d8d02423db54dea8ceb0d858642a0e1")
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
-//        syncData()
+        model.newSongs { (result) in
+            switch result {
+            case .success(let songs):
+                ()
+                print(songs)
+            case .failture:
+                print("failture")
+            }
+        }
+        
+        model.search { (result) in
+            switch result {
+            case .success(let search):
+                print(search)
+            case .failture:
+                print("failture")
+            }
+        }
     }
 
     @IBAction func action_success(_ sender: Any) {
@@ -178,18 +197,6 @@ class ViewController: UIViewController {
         queue0.async {[weak self] in
             let group = DispatchGroup()
             
-//            group.enter()
-//            self?.queue1.asyncAfter(deadline: .now()+1) {
-//                print("task1 done.")
-//                group.leave()
-//            }
-//
-//            let waitTask1 = group.wait(timeout: .now()+2)
-//
-//            if waitTask1 == .timedOut {
-//                return
-//            }
-            
             print("start notification.")
             
             group.enter()
@@ -215,6 +222,35 @@ class ViewController: UIViewController {
     func notification() {
         let identifier = count
         NotificationCenter.default.post(name: name, object: identifier)
+    }
+    
+    
+    var atimer: DispatchSourceTimer!
+    func timer() {
+        let group = DispatchGroup()
+        group.enter()
+        
+        queue0.sync {
+            atimer = DispatchSource.makeTimerSource()
+            atimer.schedule(deadline: .now(), repeating: 1.0)
+            atimer.setEventHandler {
+                print("Good")
+            }
+            queue0.asyncAfter(deadline:.now()+5) {
+                group.leave()
+            }
+            atimer.resume()
+            let result = group.wait(timeout: .now()+4)
+            atimer.cancel()
+            switch result {
+            case .success:
+                print("success")
+            case .timedOut:
+                print("timeout")
+            }
+        }
+        
+        
     }
 }
 

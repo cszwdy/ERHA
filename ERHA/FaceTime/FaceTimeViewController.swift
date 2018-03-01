@@ -7,8 +7,9 @@
 //
 
 import UIKit
+import Moya
 
-struct User {
+struct User: Codable {
     let uid: String
     let nickName: String
     let avatarUrl: URL
@@ -39,11 +40,153 @@ struct Lyric {
 
 
 
+class FaceTimeModel {
+    let token: String
+    let rid: String
+    let client = MoyaProvider<Server.Request.Funny>(stubClosure: MoyaProvider.immediatelyStub)
+    
+    init(token: String, rid: String) {
+        self.token = token
+        self.rid = rid
+    }
+    
+    enum Result<T> {
+        case success(T)
+        case failture
+    }
+    
+    func paramerters(append: [String: String] = [:]) -> [String: String] {
+        return ["token": token, "rid": rid].merging(append, uniquingKeysWith: { (old, new) -> String in
+            return old
+        })
+    }
+    
+    
+    func search(completed:@escaping (Result<Server.SearchResult.Data.Databody>)->()) {
+        client.request(.search(token: token)) { (result) in
+            switch result {
+            case .success(let response):
+                do {
+                    let decoder = JSONDecoder()
+                    let response = try response.filterSuccessfulStatusCodes()
+                    let user = try response.map(Server.SearchResult.Data.Databody.self, atKeyPath: "data.databody", using: decoder, failsOnEmptyData: true)
+                    completed(.success(user))
+                } catch {
+                    completed(.failture)
+                }
+                
+            case .failure:
+                completed(.failture)
+            }
+        }
+    }
+    
+    func disconnect(manual: Bool, completed:@escaping (Result<()>)->()) {
+        client.request(.disconnect(token: token, rid: rid, manual: manual)) { (result) in
+            switch result {
+            case .success(let response):
+                do {
+                    let _ = try response.filterSuccessfulStatusCodes()
+                    completed(.success(()))
+                } catch {
+                    completed(.failture)
+                }
+            case .failure:
+                completed(.failture)
+            }
+        }
+    }
+    
+    func newSongs(completed:@escaping (Result<[Server.NewSongsResult.Data.Databody]>)->()) {
+        client.request(.newSongs(token: token, rid: rid)) { (result) in
+            switch result {
+            case .success(let response):
+                do {
+                    let response = try response.filterSuccessfulStatusCodes()
+                    let jsonDecoder = JSONDecoder()
+                    let any = try response.map([Server.NewSongsResult.Data.Databody].self, atKeyPath: "data.databody", using: jsonDecoder, failsOnEmptyData: true)
+//                    print(json)
+                    completed(.success(any))
+                } catch let error {
+                    print(error)
+                    completed(.failture)
+                }
+            case .failure:
+                completed(.failture)
+            }
+        }
+    }
+    
+//    func notifyNeedAgreeSelectedSong(songId: String, completed:(Result<()>)->()) {
+//        client.request(.notifyNeedAgreeSelectedSong(token: token, rid: rid, songId: songId)) { (result) in
+//            <#code#>
+//        }
+//    }
+//    
+//    func notifyDidAgreeSelectedSong(agree: Bool, completed:(Result<()>)->()) {
+//        if agree {
+//            client.request(.notifyDidAgreeSelectedSong(token: token, rid: rid), completion: { (result) in
+//                <#code#>
+//            })
+//        } else {
+//            client.request(.notifyDidDisagreeSelectedSong(token: token, rid: rid), completion: { (result) in
+//                <#code#>
+//            })
+//        }
+//    }
+//    
+//    func notifyNeedPlay(completed:(Result<()>)->()) {
+//        client.request(.notifyNeedPlay(token: token, rid: rid)) { (result) in
+//            <#code#>
+//        }
+//    }
+//    
+//    func notifyNeedAgreeNewSongs(completed:(Result<()>)->()) {
+//        client.request(.notifyNeedAgreeNewSongs(token: token, rid: rid)) { (result) in
+//            <#code#>
+//        }
+//    }
+//    
+//    func notifyDidAgreeNewSongs(agree: Bool, completed:(Result<()>)->()) {
+//        if agree {
+//            client.request(.notifyDidAgreeNewSongs(token: token, rid: rid)) { (result) in
+//                <#code#>
+//            }
+//        } else {
+//            client.request(.notifyDidDisagreeNewSongs(token: token, rid: rid), completion: { (result) in
+//                <#code#>
+//            })
+//        }
+//    }
+//    
+//    func notifyDirectlyNewSongs(completed:(Result<()>)->()) {
+//        client.request(.notifyDirectlyNewSongs(token: token, rid: rid)) { (reuslt) in
+//            <#code#>
+//        }
+//    }
+//    
+//    func notifyFailToDownloadSong(completed:(Result<()>)->()) {
+//        client.request(.notifyFailToDownloadSong(token: token, rid: rid)) { (result) in
+//            <#code#>
+//        }
+//    }
+    
+}
+
+
 class FaceTimeViewController: UIViewController {
     
-    private let downloadQueue = DispatchQueue(label: "ConcurrentDownloadQueue", qos: .default, attributes: .concurrent)
-    
+    private var token: String!
+    private var rid: String!
+    private let client = MoyaProvider<Server.Request.Funny>()
     private var stateStore: StateStore<FaceTimeViewController.Event, FaceTimeViewController.State, FaceTimeViewController.Command>!
+    
+    class func viewController(token: String, rid: String) -> UIViewController {
+        let vc = UIStoryboard(name: "FaceTime", bundle: nil).instantiateInitialViewController() as! FaceTimeViewController
+        vc.token = token
+        vc.rid = rid
+        return vc
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -54,7 +197,8 @@ class FaceTimeViewController: UIViewController {
 //        stateStore.dispatch(.searchReady)
     }
     
-    // absolute value
+    
+// MARK: - States
     struct State: StateType {
         
         // Users
@@ -133,6 +277,7 @@ class FaceTimeViewController: UIViewController {
         var playViewState = PlayViewState(hidden: true, progress: 0.0, title0: "", title1: "")
     }
     
+// MARK: - Events
     /*
         The logic event, optional contain UI state change.
      */
@@ -144,21 +289,23 @@ class FaceTimeViewController: UIViewController {
         case songsHidden(Bool)
         case songsGet
         case songsReload([Song])
-        case songsSelect(Int)
+        case songsSelectAt(Int)
         case songsNeedAgree
         case songDownload
-        case songDownloading(CGFloat)
+        case songDownloadingTo(CGFloat)
         case songDownloaded
         case songPlay
         case songCancel
         case songFinished
     }
     
+    
+    
     enum Command: OperationType {
         
-        case search
-        case songsGet(([Song])->())
-        case songsReload([Song])
+        case search(token: String)
+        case songsGet(token: String, rid: String, completed: ([Song])->())
+        case songsReloadData([Song])
         case songsSelect(Song)
         case songDownload(Song,(Song)->())
         case songPlay(Song)
@@ -264,9 +411,11 @@ class FaceTimeViewController: UIViewController {
 // MARK: - Commands
 extension FaceTimeViewController {
     
-    func search() {
+    func search(token: String, rid: String) {
         let group = DispatchGroup()
         //TODO: songs request
+        client.request(.search(token: token)) { (response) in
+        }
         
         //TODO: Add notification
         
@@ -299,7 +448,8 @@ extension FaceTimeViewController {
         stateStore.dispatch(.songsGet)
     }
     
-    func songsGet() {
+    
+    func songsGet(token: String, rid: String) {
         
         var songs: [Song] = []
         let group = DispatchGroup()
@@ -321,7 +471,7 @@ extension FaceTimeViewController {
         }
     }
     
-    func songsSelect(song: Song) {
+    func songsSelect(token: String, rid: String, song: Song) {
         
         let group = DispatchGroup()
         //TODO: Song select request
@@ -342,7 +492,7 @@ extension FaceTimeViewController {
         }
     }
     
-    func download(song: Song) {
+    func download(token: String, rid: String, song: Song) {
         
         let group = DispatchGroup()
         

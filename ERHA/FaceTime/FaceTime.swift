@@ -11,9 +11,8 @@ import UIKit
 
 class FaceTime {
     
-    class func viewController() -> UIViewController {
-        
-        return UIStoryboard(name: "FaceTime", bundle: nil).instantiateInitialViewController()!
+    class func viewController(token: String, rid: String) -> UIViewController {
+        return FaceTimeViewController.viewController(token: token, rid: rid)
     }
     
 }

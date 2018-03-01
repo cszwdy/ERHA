@@ -1,0 +1,16 @@
+{
+"code": 0,
+"data": {
+"databody": {
+"rid": "房间号",
+"pushUrl": "推流地址",
+"userId": "对方用户的id",
+"nickname": "对方用户的昵称",
+"avatarUrl": "对方用户的头像",
+"province": "省份",
+"city": "城市",
+"sex": "性别（0：女， 1： 男）"
+}
+},
+"message": "成功"
+}
