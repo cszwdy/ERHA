@@ -17,6 +17,19 @@ class Server {
 
 extension Server {
     
+    struct Notification {
+        enum Funny {
+            case search(Server.SearchResult)
+            case disconnect
+            case needAgreeSelectedSong(Server.SelectedSongResult)
+            case didAgreeSelectedSong(Server.AgreeSelectedSongResult)
+            case needAgreeNewSongs
+            case didAgreeNewSongs
+            case play
+            case newSongs
+            case failToDownloadSong
+        }
+    }
     
 }
 
